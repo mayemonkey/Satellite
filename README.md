@@ -1,22 +1,21 @@
 # SatelliteLayout
 自定义布局，行星运动轨迹的布局
-![效果演示](https://github.com/mayemonkey/MonkeyDatePager/blob/master/sample.gif)
 
 ## 依赖使用
 1.在build.gradle(project)中：
 ```
 allprojects {
-		repositories {
-			......
-			maven { url "https://jitpack.io" }
-		}
-	}
+    repositories {
+        ......
+	maven { url "https://jitpack.io" }
+    }
+}
 ```
 2.在build.gradle(app)中：
 ```
 dependencies {
     ......
-	  
+    implementation 'com.github.mayemonkey:Satellite:v0.01'
 }
 ```
 
