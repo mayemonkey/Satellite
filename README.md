@@ -1,5 +1,6 @@
 # SatelliteLayout
 自定义布局，行星运动轨迹的布局
+![效果演示](https://github.com/mayemonkey/Satellite/blob/master/sample.gif)
 
 ## 依赖使用
 1.在build.gradle(project)中：
