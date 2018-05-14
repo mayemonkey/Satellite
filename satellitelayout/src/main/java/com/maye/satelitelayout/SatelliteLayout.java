@@ -18,18 +18,18 @@ public class SatelliteLayout extends ViewGroup {
 
     //大圆半径
     private Paint bPaint;
-    private float bRadius = 8.5f;
+    private float bRadius = 0f;
     private PointF bCenterPoint;
 
     //小圆半径
     private Paint lPaint;
-    private float sRadius = 1.5f;
+    private float sRadius = 0f;
 
     //角度
     private double angle = 360;
 
     //大圆相对小圆倍数
-    private float ballWeight = 5;
+    private float ballWeight = 8.5f;
 
     public SatelliteLayout(Context context) {
         this(context, null);
@@ -54,7 +54,7 @@ public class SatelliteLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        if (getChildCount() != 2){
+        if (getChildCount() != 2) {
             try {
                 throw new Exception("SatelliteLayout中需要包含两个子控件");
             } catch (Exception e) {
@@ -99,24 +99,69 @@ public class SatelliteLayout extends ViewGroup {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        //获取SatelliteLayout宽高度
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightSize = MeasureSpec.getSize(widthMeasureSpec);
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
-        int size = widthSize >= heightSize ? heightSize : widthSize;
+            View bCircle = getChildAt(0);
+            View sCircle = getChildAt(1);
+            int bSize = measureChildSize(bCircle, widthMeasureSpec, heightMeasureSpec);
+            int sSize = measureChildSize(sCircle, widthMeasureSpec, heightMeasureSpec);
+            Log.i("圆内布局", "宽：" + bSize);
+            Log.i("圆内布局", "高：" + sSize);
 
-        float baseWeight = 1 / (ballWeight + 1);
-        Log.e("基础权重", "" + baseWeight);
+        if (widthMode == MeasureSpec.EXACTLY || heightMode == MeasureSpec.EXACTLY) {
+            //获取SatelliteLayout宽高度
+            int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+            int heightSize = MeasureSpec.getSize(widthMeasureSpec);
 
-        //计算大小圆半径
-        sRadius = size / 2 * baseWeight;
-        bRadius = size / 2 * baseWeight * ballWeight;
+            int size = widthSize >= heightSize ? heightSize : widthSize;
 
-        Log.e("大圆半径", "" + bRadius);
-        Log.e("小圆半径", "" + sRadius);
+            float baseWeight = 1 / (ballWeight + 1);
+            Log.e("基础权重", "" + baseWeight);
 
-        bCenterPoint.set(bRadius, bRadius);
-        bCenterPoint.offset(sRadius, sRadius);
+            //计算大小圆半径
+            if (ballWeight == 0) {
+                sRadius = 0;
+                bRadius = size / 2;
+            } else {
+                sRadius = size / 2 * baseWeight;
+                bRadius = size / 2 * baseWeight * ballWeight;
+            }
+
+            Log.e("大圆半径", "" + bRadius);
+            Log.e("小圆半径", "" + sRadius);
+
+            bCenterPoint.set(bRadius, bRadius);
+            bCenterPoint.offset(sRadius, sRadius);
+            setMeasuredDimension(size, size);
+        } else {
+            bRadius = (float) (bSize / 2 / Math.sin(45 * Math.PI / 180));
+            sRadius = (float) (sSize / 2 / Math.sin(45 * Math.PI / 180));
+
+            ballWeight = sRadius != 0 ? bRadius / sRadius : 0;
+
+            Log.e("大圆半径", "" + bRadius);
+            Log.e("小圆半径", "" + sRadius);
+
+            bCenterPoint.set(bRadius, bRadius);
+            bCenterPoint.offset(sRadius, sRadius);
+
+            setMeasuredDimension((int) (2 * (bRadius + sRadius)), (int) (2 * (bRadius + sRadius)));
+        }
+    }
+
+    /**
+     * 测量子布局宽高
+     */
+    private int measureChildSize(View child, int widthMeasureSpec, int heightMeasureSpec) {
+        if (child != null) {
+            measureChild(child, widthMeasureSpec, heightMeasureSpec);
+
+            int width = resolveSize(child.getMeasuredWidth(), widthMeasureSpec);
+            int height = resolveSize(child.getMeasuredHeight(), heightMeasureSpec);
+            return width >= height ? width : height;
+        }
+        return 0;
     }
 
     @Override
