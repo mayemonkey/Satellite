@@ -4,7 +4,7 @@
         <attr name="bCircleColor" format="color"/>
         <attr name="sCircleColor" format="color"/>
         <attr name="ballWeight" format="integer"/>
-        <attr name="angle" format="float"/>
+        <attr name="angle" format="integer"/>
 
 
     </declare-styleable>

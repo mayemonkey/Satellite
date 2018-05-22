@@ -8,10 +8,14 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 public class SatelliteLayout extends ViewGroup {
+
+    private static final int CENTER = 1;
+    private static final int SIDE = 2;
 
     private int sBallColor = Color.RED;
     private int bBallColor = Color.BLACK;
@@ -30,6 +34,29 @@ public class SatelliteLayout extends ViewGroup {
 
     //大圆相对小圆倍数
     private float ballWeight = 8.5f;
+    private float firstX;
+    private float firstY;
+
+    //内侧圆点击
+    public interface OnCenterCircleClickedListener {
+        void onClicked();
+    }
+
+    OnCenterCircleClickedListener listener_center;
+
+    public void setOnCenterCircleClickedListener(OnCenterCircleClickedListener listener_center) {
+        this.listener_center = listener_center;
+    }
+
+    public interface OnSideCircleClickedListener {
+        void onClicked();
+    }
+
+    OnSideCircleClickedListener listener_side;
+
+    public void setOnSideCircleClickedListener(OnSideCircleClickedListener listener_side) {
+        this.listener_side = listener_side;
+    }
 
     public SatelliteLayout(Context context) {
         this(context, null);
@@ -51,6 +78,89 @@ public class SatelliteLayout extends ViewGroup {
 
         setWillNotDraw(false);
     }
+
+
+    private void init() {
+        bPaint = new Paint();
+        bPaint.setAntiAlias(true);
+
+        lPaint = new Paint();
+        lPaint.setAntiAlias(true);
+
+        bCenterPoint = new PointF();
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+
+        View bCircle = getChildAt(0);
+        View sCircle = getChildAt(1);
+        int bSize = measureChildSize(bCircle, widthMeasureSpec, heightMeasureSpec);
+        int sSize = measureChildSize(sCircle, widthMeasureSpec, heightMeasureSpec);
+        Log.i("圆内布局", "内侧：" + bSize);
+        Log.i("圆内布局", "外侧：" + sSize);
+
+        if (widthMode == MeasureSpec.EXACTLY || heightMode == MeasureSpec.EXACTLY) {
+            //获取SatelliteLayout宽高度
+            int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+            int heightSize = MeasureSpec.getSize(widthMeasureSpec);
+
+            int size = widthSize >= heightSize ? heightSize : widthSize;
+
+            float baseWeight = 1 / (ballWeight + 1);
+            Log.e("基础权重", "" + baseWeight);
+
+            //计算大小圆半径
+            if (ballWeight == 0) {
+                sRadius = 0;
+                bRadius = size / 2;
+            } else {
+                sRadius = size / 2 * baseWeight;
+                bRadius = size / 2 * baseWeight * ballWeight;
+            }
+
+            Log.e("父布局测绘->大圆半径", "" + bRadius);
+            Log.e("父布局测绘->小圆半径", "" + sRadius);
+
+            bCenterPoint.set(bRadius, bRadius);
+            bCenterPoint.offset(sRadius, sRadius);
+            setMeasuredDimension(size, size);
+        } else {
+            bRadius = (float) (bSize / 2 / Math.sin(45 * Math.PI / 180));
+            sRadius = (float) (sSize / 2 / Math.sin(45 * Math.PI / 180));
+
+            ballWeight = sRadius != 0 ? bRadius / sRadius : 0;
+
+            Log.e("子布局测绘->大圆半径", "" + bRadius);
+            Log.e("子布局测绘->小圆半径", "" + sRadius);
+
+            bCenterPoint.set(bRadius, bRadius);
+            bCenterPoint.offset(sRadius, sRadius);
+
+            setMeasuredDimension((int) (2 * (bRadius + sRadius)), (int) (2 * (bRadius + sRadius)));
+        }
+    }
+
+    /**
+     * 测量子布局宽高
+     */
+    private int measureChildSize(View child, int widthMeasureSpec, int heightMeasureSpec) {
+        if (child != null) {
+            measureChild(child, widthMeasureSpec, heightMeasureSpec);
+
+            int width = resolveSize(child.getMeasuredWidth(), widthMeasureSpec);
+            Log.i("测量子布局", "宽：" + width);
+            int height = resolveSize(child.getMeasuredHeight(), heightMeasureSpec);
+            Log.i("测量子布局", "高：" + height);
+            return width >= height ? width : height;
+        }
+        return 0;
+    }
+
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -85,85 +195,6 @@ public class SatelliteLayout extends ViewGroup {
         }
     }
 
-    private void init() {
-        bPaint = new Paint();
-        bPaint.setAntiAlias(true);
-
-        lPaint = new Paint();
-        lPaint.setAntiAlias(true);
-
-        bCenterPoint = new PointF();
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-
-            View bCircle = getChildAt(0);
-            View sCircle = getChildAt(1);
-            int bSize = measureChildSize(bCircle, widthMeasureSpec, heightMeasureSpec);
-            int sSize = measureChildSize(sCircle, widthMeasureSpec, heightMeasureSpec);
-            Log.i("圆内布局", "宽：" + bSize);
-            Log.i("圆内布局", "高：" + sSize);
-
-        if (widthMode == MeasureSpec.EXACTLY || heightMode == MeasureSpec.EXACTLY) {
-            //获取SatelliteLayout宽高度
-            int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-            int heightSize = MeasureSpec.getSize(widthMeasureSpec);
-
-            int size = widthSize >= heightSize ? heightSize : widthSize;
-
-            float baseWeight = 1 / (ballWeight + 1);
-            Log.e("基础权重", "" + baseWeight);
-
-            //计算大小圆半径
-            if (ballWeight == 0) {
-                sRadius = 0;
-                bRadius = size / 2;
-            } else {
-                sRadius = size / 2 * baseWeight;
-                bRadius = size / 2 * baseWeight * ballWeight;
-            }
-
-            Log.e("大圆半径", "" + bRadius);
-            Log.e("小圆半径", "" + sRadius);
-
-            bCenterPoint.set(bRadius, bRadius);
-            bCenterPoint.offset(sRadius, sRadius);
-            setMeasuredDimension(size, size);
-        } else {
-            bRadius = (float) (bSize / 2 / Math.sin(45 * Math.PI / 180));
-            sRadius = (float) (sSize / 2 / Math.sin(45 * Math.PI / 180));
-
-            ballWeight = sRadius != 0 ? bRadius / sRadius : 0;
-
-            Log.e("大圆半径", "" + bRadius);
-            Log.e("小圆半径", "" + sRadius);
-
-            bCenterPoint.set(bRadius, bRadius);
-            bCenterPoint.offset(sRadius, sRadius);
-
-            setMeasuredDimension((int) (2 * (bRadius + sRadius)), (int) (2 * (bRadius + sRadius)));
-        }
-    }
-
-    /**
-     * 测量子布局宽高
-     */
-    private int measureChildSize(View child, int widthMeasureSpec, int heightMeasureSpec) {
-        if (child != null) {
-            measureChild(child, widthMeasureSpec, heightMeasureSpec);
-
-            int width = resolveSize(child.getMeasuredWidth(), widthMeasureSpec);
-            int height = resolveSize(child.getMeasuredHeight(), heightMeasureSpec);
-            return width >= height ? width : height;
-        }
-        return 0;
-    }
-
     @Override
     protected void onDraw(Canvas canvas) {
         bPaint.setStyle(Paint.Style.FILL);
@@ -180,6 +211,75 @@ public class SatelliteLayout extends ViewGroup {
         Log.e("Y轴偏移", "yOffset:" + yOffset + "--Y:" + (bCenterPoint.y - yOffset));
 
         canvas.drawCircle(bCenterPoint.x + xOffset, bCenterPoint.y - yOffset, sRadius, lPaint);
+    }
+
+
+    private int checkArea(float x, float y) {
+
+        //外侧圆圆心坐标
+        float sideX = (float) (sRadius + bRadius + bRadius * Math.sin(angle * Math.PI / 180));
+        float sideY = (float) (sRadius + bRadius - (bRadius * Math.cos(angle * Math.PI / 180)));
+
+        //内侧圆圆心坐标
+        float centerX = sRadius + bRadius;
+
+        //外侧圆范围内
+        if (x >= sideX - sRadius && x <= sideX + sRadius) {
+            double touchAngel = Math.acos(Math.abs(x - sideX) / sRadius);
+            double offsetY = Math.sin(touchAngel) * sRadius;
+            if (y >= sideY - offsetY && y <= sideY + offsetY) {
+                return SIDE;
+            }
+        }
+
+        //内侧圆范围内
+        if (x >= centerX - bRadius && x <= centerX + bRadius) {
+            double touchAngel = Math.acos(Math.abs(x - centerX) / bRadius);
+            double offsetY = Math.sin(touchAngel) * bRadius;
+            if (y >= centerX - offsetY && y <= centerX + offsetY) {
+                return CENTER;
+            }
+        }
+
+        //非预定范围
+        return -1;
+    }
+
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        switch (event.getAction()) {
+
+            case MotionEvent.ACTION_DOWN:
+                firstX = event.getX();
+                firstY = event.getY();
+                break;
+
+            case MotionEvent.ACTION_UP:
+                float x = event.getX();
+                float y = event.getY();
+
+                //点击事件
+                if (x == firstX && y == firstY) {
+                    int i = checkArea(x, y);
+                    switch (i) {
+                        case SIDE:
+                            if (listener_side != null){
+                                listener_side.onClicked();
+                            }
+                            break;
+
+                        case CENTER:
+                            if (listener_center != null){
+                                listener_center.onClicked();
+                            }
+                            break;
+                    }
+                }
+                break;
+        }
+        return true;
     }
 
     /**
@@ -216,4 +316,5 @@ public class SatelliteLayout extends ViewGroup {
         this.angle = angle;
         requestLayout();
     }
+
 }

@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:background="#000"
     android:layout_height="match_parent"
     tools:context="com.maye.example.HomeActivity">
 
@@ -14,37 +15,43 @@
 
     <com.maye.satelitelayout.SatelliteLayout
         android:id="@+id/sl_home"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:background="#fff"
+        app:angle="30"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:background="#000"
         app:bCircleColor="#cc66ff"
         app:sCircleColor="#66ccff">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="#ff0000">
+            android:background="#ff0000"
+            android:gravity="center">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:padding="30dp"
                 android:text="aaaaaa"
-                android:layout_centerInParent="true"
                 android:textColor="#fff"/>
-        </RelativeLayout>
+        </LinearLayout>
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="#0000ff">
+            android:background="#0000ff"
+            android:gravity="center">
 
             <TextView
+                android:id="@+id/tv_b"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="b"
+                android:padding="10dp"
                 android:textColor="#fff"/>
-        </RelativeLayout>
+        </LinearLayout>
 
     </com.maye.satelitelayout.SatelliteLayout>
 
