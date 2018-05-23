@@ -24,7 +24,10 @@ dependencies {
 
 ## 公开方法
 ```setAngle```                           设置当前外侧球体偏移角度
- 
+
+```setOnCenterCircleClickedListener```   设置**内侧圆**点击监听事件
+
+```setOnSideCircleClickedListener```     设置**外侧圆**点击监听事件
 
 ##使用示例
 
@@ -84,7 +87,7 @@ valueAnimator.start();
 
 ##License
 ```
-Copyright [2016] [mayemonkey]
+Copyright [2018] [mayemonkey]
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
