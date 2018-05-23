@@ -18,7 +18,7 @@ allprojects {
 ```
 dependencies {
     ......
-    implementation 'com.github.mayemonkey:Satellite:v0.02'
+    implementation 'com.github.mayemonkey:Satellite:latest-version'
 }
 ```
 
